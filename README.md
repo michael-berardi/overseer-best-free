@@ -1,14 +1,36 @@
+<div align="center">
+
 # overseer-free-best
 
-Resolve the **best free chat model** on [OpenRouter](https://openrouter.ai) — dynamically, every time you ask.
+**Resolve the best free chat model on [OpenRouter](https://openrouter.ai) — dynamically, every time you ask.**
 
-Free models on OpenRouter change constantly: promo lanes appear and vanish, rate limits hit, new models land weekly. Hardcoding a free model slug means your app breaks within days. `overseer-free-best` queries the live model catalog, filters it down to genuinely usable free chat backends, ranks them, and hands you an ordered best-first list so you can fall through on rate limits instead of failing.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](pyproject.toml)
+[![Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen.svg)](#why-not-just-use-a-fixed-free-model)
 
-Zero dependencies. Standard library only. Python 3.9+.
+</div>
+
+---
+
+Free models on OpenRouter change constantly: promo lanes appear and vanish, rate limits hit, new models land weekly. Hardcoding a free model slug means your app breaks within days.
+
+`overseer-free-best` queries the live model catalog, filters it down to genuinely usable free chat backends, ranks them, and hands you an **ordered best-first list** so you can fall through on rate limits instead of failing.
+
+- Zero dependencies — standard library only
+- Python 3.9+
+- Library API *and* CLI
+- Offline-safe caching: serves the last known good ranking if the catalog is unreachable
 
 ## Why not just use a fixed free model?
 
-You can — until it disappears or gets rate-limited. And why not `openrouter/free` (OpenRouter's own free router)? It picks a free model **at random**, which is great for availability but says nothing about capability. `openrouter/auto` routes by market spend, which favors paid models. This project sits in between: *best available free model, re-evaluated automatically*.
+You can — until it disappears or gets rate-limited.
+
+| Approach | Behavior |
+|---|---|
+| Hardcoded free slug | Breaks when the lane vanishes or is rate-limited |
+| `openrouter/free` | Official free router, but picks **randomly** |
+| `openrouter/auto` | Routes by market spend — favors paid models |
+| **`overseer-free-best`** | **Best-ranked free models, re-evaluated automatically** |
 
 ## Install
 
@@ -26,7 +48,7 @@ Or vendor the single module — [`src/overseer_free_best/core.py`](src/overseer_
 from overseer_free_best import CachedResolver
 
 resolver = CachedResolver(ttl_seconds=3600)
-models = resolver.get(limit=3)   # best-first, refreshed from the catalog at most hourly
+models = resolver.get(limit=3)   # best-first; refetched at most hourly
 
 primary = models[0].id           # e.g. "stealth/ox-alpha"
 fallbacks = [m.id for m in models[1:]]
@@ -47,7 +69,7 @@ python -m overseer_free_best --top 5 --json
 3. nvidia/nemotron-3-ultra-550b-a55b:free  (context=1000000)
 ```
 
-(Example output — the actual ranking changes as the catalog changes.)
+*(Example output — the actual ranking changes as the catalog changes.)*
 
 ## How models are ranked
 
@@ -60,9 +82,9 @@ A catalog entry is eligible when all of the following hold:
 
 Eligible models are ranked by context length (larger first), then release recency, then count of supported parameters (tools, structured outputs, reasoning).
 
-## Trust and safety notes
+## Trust and safety
 
-- The catalog endpoint is public; no API key is required for ranking. You only need your own key when calling the models themselves.
+- The catalog endpoint is public; no API key is needed for ranking. You only need your own key when calling the models themselves.
 - Free tiers are rate-limited upstream. Treat every result as one lane in a fallback chain, never as a single point of failure.
 - No telemetry, no network calls beyond the public catalog fetch.
 
@@ -72,8 +94,8 @@ Eligible models are ranked by context length (larger first), then release recenc
 python -m unittest discover -s tests -v
 ```
 
-Tests run fully offline against a recorded catalog fixture.
+Tests run fully offline against a recorded catalog fixture. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © Implose Cybernetics
