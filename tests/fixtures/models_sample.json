@@ -1,0 +1,83 @@
+[
+  {
+    "id": "stealth/ox-alpha",
+    "name": "Ox Alpha",
+    "created": 1787256295,
+    "context_length": 1048576,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text"]},
+    "supported_parameters": ["tools", "structured_outputs", "reasoning"]
+  },
+  {
+    "id": "nvidia/nemotron-3.5-lightning:free",
+    "name": "Nemotron 3.5 Lightning (free)",
+    "created": 1786452751,
+    "context_length": 1000000,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text"]},
+    "supported_parameters": ["tools"]
+  },
+  {
+    "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "name": "Nemotron 3 Ultra 550B (free)",
+    "created": 1780551208,
+    "context_length": 262144,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text"]},
+    "supported_parameters": ["tools", "reasoning"]
+  },
+  {
+    "id": "acme/paid-model",
+    "name": "Paid Model",
+    "created": 1787256295,
+    "context_length": 2000000,
+    "pricing": {"prompt": "0.000001", "completion": "0.000002"},
+    "architecture": {"output_modalities": ["text"]},
+    "supported_parameters": ["tools"]
+  },
+  {
+    "id": "google/lyria-3-pro-preview",
+    "name": "Lyria 3 Pro (music)",
+    "created": 1774907286,
+    "context_length": 1048576,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text", "audio"]},
+    "supported_parameters": []
+  },
+  {
+    "id": "openrouter/free",
+    "name": "OpenRouter Free Router",
+    "created": 1769917427,
+    "context_length": 200000,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text", "image"]},
+    "supported_parameters": []
+  },
+  {
+    "id": "nvidia/nemotron-3.5-content-safety:free",
+    "name": "Content Safety Classifier (free)",
+    "created": 1780581864,
+    "context_length": 128000,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text"]},
+    "supported_parameters": ["structured_outputs"]
+  },
+  {
+    "id": "acme/embed-v2:free",
+    "name": "Embeddings v2 (free)",
+    "created": 1786000000,
+    "context_length": 8192,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text"]},
+    "supported_parameters": []
+  },
+  {
+    "id": "old/small-free:free",
+    "name": "Small Old Free",
+    "created": 1700000000,
+    "context_length": 4096,
+    "pricing": {"prompt": "0", "completion": "0"},
+    "architecture": {"output_modalities": ["text"]},
+    "supported_parameters": []
+  }
+]
