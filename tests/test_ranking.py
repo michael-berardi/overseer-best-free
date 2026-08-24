@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from overseer_free_best import CachedResolver, best_free_models, is_eligible
+from overseer_best_free import CachedResolver, best_free_models, is_eligible
 
 FIXTURE = Path(__file__).parent / "fixtures" / "models_sample.json"
 
@@ -56,10 +56,10 @@ class RankingTests(unittest.TestCase):
 class CacheTests(unittest.TestCase):
     def test_serves_stale_on_fetch_failure(self):
         resolver = CachedResolver(ttl_seconds=0)
-        with mock.patch("overseer_free_best.core.fetch_catalog", return_value=load_catalog()):
+        with mock.patch("overseer_best_free.core.fetch_catalog", return_value=load_catalog()):
             first = resolver.get(limit=1)
         with mock.patch(
-            "overseer_free_best.core.fetch_catalog", side_effect=RuntimeError("down")
+            "overseer_best_free.core.fetch_catalog", side_effect=RuntimeError("down")
         ):
             second = resolver.get(limit=1)  # expired cache + failed refresh -> stale
         self.assertEqual(first[0].id, second[0].id)
@@ -67,7 +67,7 @@ class CacheTests(unittest.TestCase):
     def test_raises_when_never_populated(self):
         resolver = CachedResolver()
         with mock.patch(
-            "overseer_free_best.core.fetch_catalog", side_effect=RuntimeError("down")
+            "overseer_best_free.core.fetch_catalog", side_effect=RuntimeError("down")
         ):
             with self.assertRaises(RuntimeError):
                 resolver.get()
