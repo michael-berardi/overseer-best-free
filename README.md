@@ -1,6 +1,6 @@
 <div align="center">
 
-# overseer-free-best
+# overseer-best-free
 
 **Resolve the best free chat model on [OpenRouter](https://openrouter.ai) — dynamically, every time you ask.**
 
@@ -14,7 +14,7 @@
 
 Free models on OpenRouter change constantly: promo lanes appear and vanish, rate limits hit, new models land weekly. Hardcoding a free model slug means your app breaks within days.
 
-`overseer-free-best` queries the live model catalog, filters it down to genuinely usable free chat backends, ranks them, and hands you an **ordered best-first list** so you can fall through on rate limits instead of failing.
+`overseer-best-free` queries the live model catalog, filters it down to genuinely usable free chat backends, ranks them, and hands you an **ordered best-first list** so you can fall through on rate limits instead of failing.
 
 - Zero dependencies — standard library only
 - Python 3.9+
@@ -30,22 +30,22 @@ You can — until it disappears or gets rate-limited.
 | Hardcoded free slug | Breaks when the lane vanishes or is rate-limited |
 | `openrouter/free` | Official free router, but picks **randomly** |
 | `openrouter/auto` | Routes by market spend — favors paid models |
-| **`overseer-free-best`** | **Best-ranked free models, re-evaluated automatically** |
+| **`overseer-best-free`** | **Best-ranked free models, re-evaluated automatically** |
 
 ## Install
 
 ```bash
-pip install overseer-free-best
+pip install overseer-best-free
 ```
 
-Or vendor the single module — [`src/overseer_free_best/core.py`](src/overseer_free_best/core.py) is self-contained.
+Or vendor the single module — [`src/overseer_best_free/core.py`](src/overseer_best_free/core.py) is self-contained.
 
 ## Usage
 
 ### Library
 
 ```python
-from overseer_free_best import CachedResolver
+from overseer_best_free import CachedResolver
 
 resolver = CachedResolver(ttl_seconds=3600)
 models = resolver.get(limit=3)   # best-first; refetched at most hourly
@@ -59,8 +59,8 @@ Build a fallback chain from the ranking: try `models[0]`, fall through to `model
 ### Command line
 
 ```bash
-python -m overseer_free_best             # top 3, plain text
-python -m overseer_free_best --top 5 --json
+python -m overseer_best_free             # top 3, plain text
+python -m overseer_best_free --top 5 --json
 ```
 
 ```text

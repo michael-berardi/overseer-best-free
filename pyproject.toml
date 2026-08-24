@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "overseer-free-best"
+name = "overseer-best-free"
 version = "0.1.0"
 description = "Dynamically resolve the best free chat model on OpenRouter, with a fallback-ready ranking."
 readme = "README.md"
@@ -20,10 +20,10 @@ classifiers = [
 ]
 
 [project.scripts]
-overseer-free-best = "overseer_free_best.__main__:main"
+overseer-best-free = "overseer_best_free.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/michael-berardi/overseer-free-best"
+Homepage = "https://github.com/michael-berardi/overseer-best-free"
 
 [tool.setuptools.packages.find]
 where = ["src"]

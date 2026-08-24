@@ -1,4 +1,4 @@
-"""overseer-free-best: dynamic resolution of the best free OpenRouter model."""
+"""overseer-best-free: dynamic resolution of the best free OpenRouter model."""
 
 from .core import (
     MODELS_URL,

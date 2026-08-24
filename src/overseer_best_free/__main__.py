@@ -1,7 +1,7 @@
 """Command-line interface: print the current best free OpenRouter models.
 
 Usage:
-    python -m overseer_free_best [--top N] [--json] [--no-cache]
+    python -m overseer_best_free [--top N] [--json] [--no-cache]
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from .core import CachedResolver
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="overseer-free-best",
+        prog="overseer-best-free",
         description="Print the current best free models on OpenRouter, best first.",
     )
     parser.add_argument("--top", type=int, default=3, help="How many models to list (default 3)")

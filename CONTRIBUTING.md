@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in improving `overseer-free-best`.
+Thanks for your interest in improving `overseer-best-free`.
 
 ## Ground rules
 
@@ -12,7 +12,7 @@ Thanks for your interest in improving `overseer-free-best`.
 
 1. Fork, create a feature branch.
 2. Make the change with tests.
-3. Run the full suite and `python -m overseer_free_best --top 3 --json` as a live smoke check.
+3. Run the full suite and `python -m overseer_best_free --top 3 --json` as a live smoke check.
 4. Open a pull request describing the behavior change.
 
 ## Reporting bugs
