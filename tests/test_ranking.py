@@ -54,6 +54,16 @@ class RankingTests(unittest.TestCase):
 
 
 class MalformedCatalogTests(unittest.TestCase):
+    def test_non_dict_pricing_and_architecture_skipped(self):
+        catalog = [
+            {"id": "a/bad-pricing", "pricing": ["0", "0"], "architecture": {"output_modalities": ["text"]}},
+            {"id": "b/bad-arch", "pricing": {"prompt": "0", "completion": "0"}, "architecture": ["text"]},
+            {"id": "c/good:free", "pricing": {"prompt": "0", "completion": "0"},
+             "architecture": {"output_modalities": ["text"]}},
+        ]
+        ranked = best_free_models(catalog, limit=10)
+        self.assertEqual([m.id for m in ranked], ["c/good:free"])
+
     def test_non_dict_and_bad_id_entries_skipped(self):
         catalog = [
             "not-a-dict",
@@ -95,9 +105,6 @@ class CacheTests(unittest.TestCase):
                 resolver.get()
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class InputModalityTests(unittest.TestCase):
     def setUp(self):
@@ -131,3 +138,7 @@ class NegativeCacheTests(unittest.TestCase):
             second = resolver.get()  # still within negative-cache TTL
         self.assertEqual(second, [])
         refetch.assert_not_called()
+
+
+if __name__ == "__main__":
+    unittest.main()

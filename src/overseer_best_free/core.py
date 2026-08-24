@@ -67,19 +67,25 @@ def _int(value, default: int = 0) -> int:
     """Tolerant integer coercion: the catalog is untrusted input."""
     try:
         return int(value)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return default
 
 
+def _mapping(value) -> dict:
+    """Tolerant dict coercion: nested catalog objects may be any JSON type."""
+    return value if isinstance(value, dict) else {}
+
+
 def _output_is_text(model: dict) -> bool:
-    outputs = (model.get("architecture") or {}).get("output_modalities") or []
+    outputs = _mapping(model.get("architecture")).get("output_modalities") or []
     return outputs == ["text"]
+
 
 def is_eligible(model: dict) -> bool:
     """True when a catalog entry can serve as a free chat backend."""
     if not isinstance(model, dict) or not isinstance(model.get("id"), str):
         return False
-    pricing = model.get("pricing") or {}
+    pricing = _mapping(model.get("pricing"))
     if not (_zero(pricing.get("prompt")) and _zero(pricing.get("completion"))):
         return False
     if not _output_is_text(model):
@@ -105,7 +111,7 @@ def rank_key(model: dict):
 
 def to_free_model(model: dict) -> FreeModel:
     params = model.get("supported_parameters")
-    inputs = (model.get("architecture") or {}).get("input_modalities") or []
+    inputs = _mapping(model.get("architecture")).get("input_modalities") or []
     return FreeModel(
         id=model["id"],
         name=model.get("name", model["id"]),
@@ -121,6 +127,8 @@ def fetch_catalog(timeout: float = 10.0) -> list[dict]:
     request = urllib.request.Request(MODELS_URL, headers={"Accept": "application/json"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         payload = json.load(response)
+    if not isinstance(payload, dict):
+        raise ValueError("unexpected catalog shape: response is not a JSON object")
     data = payload.get("data")
     if not isinstance(data, list):
         raise ValueError("unexpected catalog shape: 'data' is not a list")

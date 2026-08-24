@@ -1,7 +1,7 @@
 """Command-line interface: print the current best free OpenRouter models.
 
 Usage:
-    python -m overseer_best_free [--top N] [--json] [--no-cache]
+    python -m overseer_best_free [--top N] [--json] [--refresh]
 """
 
 from __future__ import annotations
