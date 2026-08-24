@@ -53,6 +53,28 @@ class RankingTests(unittest.TestCase):
         self.assertFalse(is_eligible({"id": "x/y", "pricing": None}))
 
 
+class MalformedCatalogTests(unittest.TestCase):
+    def test_non_dict_and_bad_id_entries_skipped(self):
+        catalog = [
+            "not-a-dict",
+            {"pricing": {"prompt": 0, "completion": 0}, "architecture": {"output_modalities": ["text"]}},
+            {"id": 123, "pricing": {"prompt": 0, "completion": 0}},
+            {"id": "acme/good:free", "name": "Good", "context_length": "8k", "created": "yesterday",
+             "supported_parameters": "not-a-list", "architecture": {"output_modalities": ["text"]},
+             "pricing": {"prompt": 0, "completion": 0}},
+        ]
+        ranked = best_free_models(catalog, limit=10)
+        self.assertEqual([m.id for m in ranked], ["acme/good:free"])
+        self.assertEqual(ranked[0].context_length, 0)
+        self.assertEqual(ranked[0].created, 0)
+        self.assertEqual(ranked[0].supported_parameters, ())
+
+    def test_rank_key_tolerates_garbage_scalars(self):
+        from overseer_best_free import rank_key
+        key = rank_key({"context_length": "huge", "created": None, "supported_parameters": None})
+        self.assertTrue(all(isinstance(v, int) for v in key))
+
+
 class CacheTests(unittest.TestCase):
     def test_serves_stale_on_fetch_failure(self):
         resolver = CachedResolver(ttl_seconds=0)

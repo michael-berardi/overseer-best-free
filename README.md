@@ -20,6 +20,7 @@ Free models on OpenRouter change constantly: promo lanes appear and vanish, rate
 - Python 3.9+
 - Library API *and* CLI
 - Offline-safe caching: serves the last known good ranking if the catalog is unreachable
+- Built for agents and bots that must never hard-fail on a dead free tier
 
 ## Why not just use a fixed free model?
 
@@ -71,6 +72,40 @@ python -m overseer_best_free --top 5 --json
 
 *(Example output — the actual ranking changes as the catalog changes.)*
 
+## Drop-in fallback chain
+
+A complete client with no dependencies beyond this package. It tries the best
+free model first and walks down the ranking on any failure or rate limit:
+
+```python
+import json, time, urllib.request
+from overseer_best_free import CachedResolver
+
+resolver = CachedResolver(ttl_seconds=1800)
+
+def chat(messages, max_retries=3):
+    for model in resolver.get(limit=max_retries):
+        request = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions",
+            method="POST",
+        )
+        request.add_header("Authorization", "Bearer YOUR_OPENROUTER_KEY")
+        request.add_header("Content-Type", "application/json")
+        request.data = json.dumps({"model": model.id, "messages": messages}).encode()
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return json.load(response)
+        except Exception:
+            continue   # rate-limited or down; try the next free model
+    raise RuntimeError("all free models exhausted")
+```
+
+Need tool calling or structured outputs? Filter on what each model supports:
+
+```python
+candidates = [m for m in resolver.get(limit=20) if "tools" in m.supported_parameters]
+```
+
 ## How models are ranked
 
 A catalog entry is eligible when all of the following hold:
@@ -86,7 +121,16 @@ Eligible models are ranked by context length (larger first), then release recenc
 
 - The catalog endpoint is public; no API key is needed for ranking. You only need your own key when calling the models themselves.
 - Free tiers are rate-limited upstream. Treat every result as one lane in a fallback chain, never as a single point of failure.
-- No telemetry, no network calls beyond the public catalog fetch.
+- No telemetry, and the only network call is the public catalog fetch.
+
+## Honest limits
+
+- Ranking is metadata-driven (price, context, recency, features). It does not
+  measure live latency or quality — pair it with your own health checks if you
+  need those guarantees.
+- Free lanes are offered at providers' discretion and can disappear without
+  notice. That is exactly why this package re-resolves every time instead of
+  trusting yesterday's answer.
 
 ## Development
 

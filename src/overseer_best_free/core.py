@@ -63,22 +63,32 @@ def _zero(value) -> bool:
         return False
 
 
+def _int(value, default: int = 0) -> int:
+    """Tolerant integer coercion: the catalog is untrusted input."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def _output_is_text(model: dict) -> bool:
     outputs = (model.get("architecture") or {}).get("output_modalities") or []
     return outputs == ["text"]
 
-
 def is_eligible(model: dict) -> bool:
     """True when a catalog entry can serve as a free chat backend."""
+    if not isinstance(model, dict) or not isinstance(model.get("id"), str):
+        return False
     pricing = model.get("pricing") or {}
     if not (_zero(pricing.get("prompt")) and _zero(pricing.get("completion"))):
         return False
     if not _output_is_text(model):
         return False
-    namespace = model.get("id", "").split("/", 1)[0]
+    namespace = model["id"].split("/", 1)[0]
     if namespace.lower() in _EXCLUDED_NAMESPACES:
         return False
-    haystack = f"{model.get('id', '')} {model.get('name', '')}"
+    name = model.get("name", "")
+    haystack = f"{model['id']} {name if isinstance(name, str) else ''}"
     if _NON_CHAT_PATTERN.search(haystack):
         return False
     return True
@@ -87,23 +97,22 @@ def is_eligible(model: dict) -> bool:
 def rank_key(model: dict):
     """Sort key: bigger context first, then newer, then more features."""
     return (
-        -(model.get("context_length") or 0),
-        -(model.get("created") or 0),
-        -len(model.get("supported_parameters") or []),
+        -_int(model.get("context_length")),
+        -_int(model.get("created")),
+        -len(model.get("supported_parameters") or []) if isinstance(model.get("supported_parameters"), list) else 0,
     )
 
 
 def to_free_model(model: dict) -> FreeModel:
-    params = model.get("supported_parameters") or []
-    created = model.get("created") or 0
+    params = model.get("supported_parameters")
     inputs = (model.get("architecture") or {}).get("input_modalities") or []
     return FreeModel(
         id=model["id"],
         name=model.get("name", model["id"]),
-        context_length=int(model.get("context_length") or 0),
-        created=int(created),
-        supported_parameters=tuple(params),
-        input_modalities=tuple(inputs),
+        context_length=_int(model.get("context_length")),
+        created=_int(model.get("created")),
+        supported_parameters=tuple(params) if isinstance(params, list) else (),
+        input_modalities=tuple(inputs) if isinstance(inputs, list) else (),
     )
 
 
@@ -112,7 +121,10 @@ def fetch_catalog(timeout: float = 10.0) -> list[dict]:
     request = urllib.request.Request(MODELS_URL, headers={"Accept": "application/json"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         payload = json.load(response)
-    return payload.get("data", [])
+    data = payload.get("data")
+    if not isinstance(data, list):
+        raise ValueError("unexpected catalog shape: 'data' is not a list")
+    return data
 
 
 def resolve_free_models(catalog: list[dict]) -> list[FreeModel]:

@@ -29,7 +29,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         resolver = CachedResolver()
-        models = resolver.get(limit=args.top, refresh=args.refresh)
+        models = resolver.get(limit=max(1, args.top), refresh=args.refresh)
     except Exception as exc:  # noqa: BLE001 - CLI boundary
         print(f"error: {exc}", file=sys.stderr)
         return 1
