@@ -22,4 +22,4 @@ __all__ = [
     "resolve_free_models",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

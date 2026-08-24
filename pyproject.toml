@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "overseer-best-free"
-version = "0.1.0"
+version = "0.2.0"
 description = "Dynamically resolve the best free chat model on OpenRouter, with a fallback-ready ranking."
 readme = "README.md"
 requires-python = ">=3.9"

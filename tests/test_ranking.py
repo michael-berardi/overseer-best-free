@@ -75,3 +75,37 @@ class CacheTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class InputModalityTests(unittest.TestCase):
+    def setUp(self):
+        self.catalog = load_catalog()
+        self.ranked = {m.id: m for m in best_free_models(self.catalog, limit=10)}
+
+    def test_image_input_flag_exposed(self):
+        # fixture ox-alpha entry has no input_modalities key -> defaults empty
+        self.assertFalse(self.ranked["stealth/ox-alpha"].supports_image_input)
+
+    def test_as_dict_round_trips_modalities(self):
+        m = self.ranked["stealth/ox-alpha"]
+        d = m.as_dict()
+        self.assertIn("input_modalities", d)
+        self.assertIsInstance(d["input_modalities"], list)
+
+
+class NegativeCacheTests(unittest.TestCase):
+    def test_empty_result_cached_briefly(self):
+        resolver = CachedResolver(ttl_seconds=3600)
+        with mock.patch(
+            "overseer_best_free.core.fetch_catalog",
+            return_value=[{"id": "x/y", "pricing": {"prompt": "1", "completion": "1"}}],
+        ):
+            first = resolver.get()
+        self.assertEqual(first, [])
+        with mock.patch(
+            "overseer_best_free.core.fetch_catalog",
+            return_value=load_catalog(),
+        ) as refetch:
+            second = resolver.get()  # still within negative-cache TTL
+        self.assertEqual(second, [])
+        refetch.assert_not_called()

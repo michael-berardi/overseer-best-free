@@ -39,6 +39,11 @@ class FreeModel:
     context_length: int
     created: int
     supported_parameters: tuple[str, ...] = field(default_factory=tuple)
+    input_modalities: tuple[str, ...] = field(default_factory=tuple)
+
+    @property
+    def supports_image_input(self) -> bool:
+        return "image" in self.input_modalities
 
     def as_dict(self) -> dict:
         return {
@@ -47,6 +52,7 @@ class FreeModel:
             "context_length": self.context_length,
             "created": self.created,
             "supported_parameters": list(self.supported_parameters),
+            "input_modalities": list(self.input_modalities),
         }
 
 
@@ -90,12 +96,14 @@ def rank_key(model: dict):
 def to_free_model(model: dict) -> FreeModel:
     params = model.get("supported_parameters") or []
     created = model.get("created") or 0
+    inputs = (model.get("architecture") or {}).get("input_modalities") or []
     return FreeModel(
         id=model["id"],
         name=model.get("name", model["id"]),
         context_length=int(model.get("context_length") or 0),
         created=int(created),
         supported_parameters=tuple(params),
+        input_modalities=tuple(inputs),
     )
 
 
@@ -123,8 +131,12 @@ class CachedResolver:
     """TTL cache around :func:`resolve_free_models` for long-running processes.
 
     Serves the previous ranking when a refresh fails, so transient network or
-    API problems never leave callers without a usable model chain.
+    API problems never leave callers without a usable model chain. An
+    unexpectedly empty ranking is cached briefly (negative cache) so a catalog
+    hiccup does not turn into a refetch on every call.
     """
+
+    EMPTY_TTL_SECONDS = 300.0
 
     def __init__(self, ttl_seconds: float = 3600.0, timeout: float = 10.0):
         self.ttl_seconds = ttl_seconds
@@ -140,8 +152,13 @@ class CachedResolver:
             if fresh and not refresh:
                 return self._models[:limit]
             try:
-                self._models = resolve_free_models(fetch_catalog(timeout=self.timeout))
-                self._expires_at = now + self.ttl_seconds
+                ranked = resolve_free_models(fetch_catalog(timeout=self.timeout))
+                self._models = ranked
+                # Empty rankings get a short TTL so outages and catalog bugs
+                # degrade to "retry soon" instead of "refetch every call".
+                self._expires_at = now + (
+                    self.ttl_seconds if ranked else min(self.EMPTY_TTL_SECONDS, self.ttl_seconds)
+                )
             except Exception:
                 if self._models is None:
                     raise
