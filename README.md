@@ -35,7 +35,7 @@ You can — until it disappears or gets rate-limited.
 ## Install
 
 ```bash
-pip install overseer-best-free
+pip install git+https://github.com/michael-berardi/overseer-best-free.git
 ```
 
 Or vendor the single module — [`src/overseer_best_free/core.py`](src/overseer_best_free/core.py) is self-contained.
