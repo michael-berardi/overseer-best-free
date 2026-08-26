@@ -51,7 +51,7 @@ from overseer_best_free import CachedResolver
 resolver = CachedResolver(ttl_seconds=3600)
 models = resolver.get(limit=3)   # best-first; refetched at most hourly
 
-primary = models[0].id           # e.g. "stealth/ox-alpha"
+primary = models[0].id           # e.g. "thinkingmachines/inkling-small:free"
 fallbacks = [m.id for m in models[1:]]
 ```
 
@@ -65,9 +65,9 @@ python -m overseer_best_free --top 5 --json
 ```
 
 ```text
-1. stealth/ox-alpha  (context=1048576)
-2. nvidia/nemotron-3.5-lightning:free  (context=1000000)
-3. nvidia/nemotron-3-ultra-550b-a55b:free  (context=1000000)
+1. thinkingmachines/inkling-small:free  (context=1048576)
+2. thinkingmachines/inkling:free  (context=1048576)
+3. minimax/minimax-m3:free  (context=1048576)
 ```
 
 *(Example output — the actual ranking changes as the catalog changes.)*

@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from overseer_best_free import CachedResolver, best_free_models, is_eligible
+from overseer_best_free.core import to_free_model
 
 FIXTURE = Path(__file__).parent / "fixtures" / "models_sample.json"
 
@@ -22,8 +23,9 @@ class RankingTests(unittest.TestCase):
         self.ranked = best_free_models(self.catalog, limit=10)
 
     def test_paid_model_excluded(self):
+        # largest context in the fixture, still excluded for being paid
         ids = [m.id for m in self.ranked]
-        self.assertNotIn("acme/paid-model", ids)
+        self.assertNotIn("openai/gpt-5.6-luna-pro", ids)
 
     def test_audio_output_excluded(self):
         ids = [m.id for m in self.ranked]
@@ -39,10 +41,10 @@ class RankingTests(unittest.TestCase):
         self.assertNotIn("acme/embed-v2:free", ids)
 
     def test_ordering_context_then_recency(self):
-        self.assertEqual(self.ranked[0].id, "stealth/ox-alpha")
-        self.assertEqual(self.ranked[1].id, "nvidia/nemotron-3.5-lightning:free")
-        # ultra (262k) ranks above small-old (4096) despite being older
-        self.assertEqual(self.ranked[2].id, "nvidia/nemotron-3-ultra-550b-a55b:free")
+        self.assertEqual(self.ranked[0].id, "thinkingmachines/inkling-small:free")
+        self.assertEqual(self.ranked[1].id, "thinkingmachines/inkling:free")
+        # equal context tiers break ties on recency: inkling-small > inkling > minimax-m3
+        self.assertEqual(self.ranked[2].id, "minimax/minimax-m3:free")
         self.assertEqual(self.ranked[-1].id, "old/small-free:free")
 
     def test_limit(self):
@@ -112,14 +114,23 @@ class InputModalityTests(unittest.TestCase):
         self.ranked = {m.id: m for m in best_free_models(self.catalog, limit=10)}
 
     def test_image_input_flag_exposed(self):
-        # fixture ox-alpha entry has no input_modalities key -> defaults empty
-        self.assertFalse(self.ranked["stealth/ox-alpha"].supports_image_input)
+        # recorded inkling-small entry accepts text+image+audio inputs
+        self.assertTrue(self.ranked["thinkingmachines/inkling-small:free"].supports_image_input)
+
+    def test_missing_input_modalities_defaults_empty(self):
+        entry = {
+            "id": "x/y",
+            "pricing": {"prompt": "0", "completion": "0"},
+            "architecture": {"output_modalities": ["text"]},
+        }
+        m = to_free_model(entry)
+        self.assertFalse(m.supports_image_input)
+        self.assertEqual(m.input_modalities, ())
 
     def test_as_dict_round_trips_modalities(self):
-        m = self.ranked["stealth/ox-alpha"]
-        d = m.as_dict()
+        d = self.ranked["thinkingmachines/inkling-small:free"].as_dict()
         self.assertIn("input_modalities", d)
-        self.assertIsInstance(d["input_modalities"], list)
+        self.assertEqual(d["input_modalities"], ["text", "image", "audio"])
 
 
 class NegativeCacheTests(unittest.TestCase):
